@@ -5,7 +5,10 @@ import random
 
 import googletrans
 
-lang = list(googletrans.LANGUAGES)
+all_lang = list(googletrans.LANGUAGES)
+safe_lang = ['zh-cn', 'zh-tw', 'en', 'eo', 'fi', 'fr', 'de', 'iw', 'hi', 'ga', 'it', 'ja',
+             'mn', 'pl', 'pt', 'ru', 'es', 'th', 'uz', 'vi', 'cy']
+lang = None
 
 
 def check_version():
@@ -18,7 +21,8 @@ def parse_args():
     ret = {"count": 10,
            "dest": "zh-CN",
            "intl": False,
-           "lbl": False}
+           "lbl": False,
+           "safe": True}
     for i in sys.argv:
         if i.startswith("-f"):
             ret["file"] = i[2:]
@@ -30,6 +34,8 @@ def parse_args():
             ret["intl"] = True
         elif i == "-lines":
             ret["lbl"] = True
+        elif i == "-unsafe":
+            ret["safe"] = False
     return ret
 
 
@@ -43,13 +49,14 @@ def translate(translator: googletrans.Translator, text: str, count: int, dest: s
 
 def do_translate(tr: googletrans.Translator, content: str, line_by_line: bool, count: int, dest: str):
     if line_by_line:
-        for i in content:
+        for i in content.split('\n'):
             print(translate(translator=tr, text=content, count=count, dest=dest))
     else:
         print(translate(translator=tr, text=content, count=count, dest=dest))
 
 
 def main():
+    random.seed()
     check_version()
 
     args = parse_args()
@@ -57,6 +64,11 @@ def main():
     count = args["count"]
     dest = args["dest"]
     line_by_line = args["lbl"]
+    global lang
+    if args["safe"]:
+        lang = safe_lang
+    else:
+        lang = all_lang
     content = ""
     use_input = False
 
